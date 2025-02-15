@@ -3,7 +3,6 @@ module github.com/KazikovAP/merch_store
 go 1.23.0
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gorilla/mux v1.8.1
 	github.com/lib/pq v1.10.9

@@ -7,14 +7,28 @@ go tool cover -html=coverage.out
 go test -cover ./...
 
 cmd/merchshop/main.go
+
 internal/config/config.go
+
 internal/handlers/handlers.go
+
 internal/middleware/jwt.go
+
 internal/model/models.go
+
 internal/repository/inventory_repository.go
+internal/repository/merche_repository.go
 internal/repository/transaction_repository.go
 internal/repository/user_repository.go
+
 internal/service/auth_service.go
 internal/service/coin_service.go
 internal/service/purchase_service.go
 internal/service/user_service.go
+
+migration/migration.sql
+
+config.yaml
+
+docker-compose.yml
+Dockerfile

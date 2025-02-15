@@ -3,8 +3,13 @@ package service
 import (
 	"errors"
 
-	"github.com/KazikovAP/merch_store/internal/model"
+	"github.com/KazikovAP/merch_store/internal/model/domain"
 	"github.com/KazikovAP/merch_store/internal/repository"
+)
+
+const (
+	TransactionTypeSent     = "sent"
+	TransactionTypeReceived = "received"
 )
 
 type CoinService interface {
@@ -53,21 +58,22 @@ func (s *coinService) TransferCoins(fromUsername, toUsername string, amount int)
 		return err
 	}
 
-	if err := s.transactionRepo.Create(&model.Transaction{
-		UserID:    sender.ID,
-		Type:      "sent",
-		OtherUser: receiver.Username,
-		Amount:    amount,
-	}); err != nil {
-		return err
+	transactions := []*domain.Transaction{
+		{
+			UserID:    sender.ID,
+			Type:      TransactionTypeSent,
+			OtherUser: receiver.Username,
+			Amount:    amount,
+		},
+		{
+			UserID:    receiver.ID,
+			Type:      TransactionTypeReceived,
+			OtherUser: sender.Username,
+			Amount:    amount,
+		},
 	}
 
-	if err := s.transactionRepo.Create(&model.Transaction{
-		UserID:    receiver.ID,
-		Type:      "received",
-		OtherUser: sender.Username,
-		Amount:    amount,
-	}); err != nil {
+	if err := s.transactionRepo.CreateBatch(transactions); err != nil {
 		return err
 	}
 

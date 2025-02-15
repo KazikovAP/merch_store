@@ -1,12 +1,12 @@
 package service
 
 import (
-	"github.com/KazikovAP/merch_store/internal/model"
+	"github.com/KazikovAP/merch_store/internal/model/dto"
 	"github.com/KazikovAP/merch_store/internal/repository"
 )
 
 type UserService interface {
-	GetUserInfo(username string) (*model.InfoResponse, error)
+	GetUserInfo(username string) (*dto.InfoResponse, error)
 }
 
 type userService struct {
@@ -27,7 +27,7 @@ func NewUserService(
 	}
 }
 
-func (s *userService) GetUserInfo(username string) (*model.InfoResponse, error) {
+func (s *userService) GetUserInfo(username string) (*dto.InfoResponse, error) {
 	user, err := s.userRepo.GetByUsername(username)
 	if err != nil {
 		return nil, err
@@ -43,35 +43,35 @@ func (s *userService) GetUserInfo(username string) (*model.InfoResponse, error) 
 		return nil, err
 	}
 
-	invResp := make([]model.InventoryResponse, 0, len(invItems))
+	invResp := make([]dto.InventoryResponse, 0, len(invItems))
 
 	for _, item := range invItems {
-		invResp = append(invResp, model.InventoryResponse{
+		invResp = append(invResp, dto.InventoryResponse{
 			Type:     item.ItemType,
 			Quantity: item.Quantity,
 		})
 	}
 
-	coinHistory := model.CoinHistoryResponse{
-		Received: []model.TransactionDetail{},
-		Sent:     []model.TransactionDetail{},
+	coinHistory := dto.CoinHistoryResponse{
+		Received: []dto.TransactionDetail{},
+		Sent:     []dto.TransactionDetail{},
 	}
 
 	for _, txn := range txns {
 		if txn.Type == "received" {
-			coinHistory.Received = append(coinHistory.Received, model.TransactionDetail{
+			coinHistory.Received = append(coinHistory.Received, dto.TransactionDetail{
 				FromUser: txn.OtherUser,
 				Amount:   txn.Amount,
 			})
 		} else if txn.Type == "sent" {
-			coinHistory.Sent = append(coinHistory.Sent, model.TransactionDetail{
+			coinHistory.Sent = append(coinHistory.Sent, dto.TransactionDetail{
 				ToUser: txn.OtherUser,
 				Amount: txn.Amount,
 			})
 		}
 	}
 
-	info := &model.InfoResponse{
+	info := &dto.InfoResponse{
 		Coins:       user.Coins,
 		Inventory:   invResp,
 		CoinHistory: coinHistory,

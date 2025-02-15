@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/KazikovAP/merch_store/internal/middleware"
-	"github.com/KazikovAP/merch_store/internal/model"
+	"github.com/KazikovAP/merch_store/internal/model/dto"
 	"github.com/KazikovAP/merch_store/internal/service"
 	"github.com/gorilla/mux"
 )
@@ -28,82 +28,94 @@ func NewHandler(auth service.AuthService, user service.UserService, coin service
 
 // /api/auth.
 func (h *Handler) Auth(w http.ResponseWriter, r *http.Request) {
-	var req model.AuthRequest
+	var req dto.AuthRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "invalid request payload", http.StatusBadRequest)
 		return
 	}
 
 	token, err := h.authService.Authenticate(req.Username, req.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		http.Error(w, "authentication failed", http.StatusUnauthorized)
 		return
 	}
 
-	resp := model.AuthResponse{Token: token}
-
 	w.Header().Set("Content-Type", "application/json")
 
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	if err := json.NewEncoder(w).Encode(dto.AuthResponse{Token: token}); err != nil {
+		http.Error(w, "failed to encode response", http.StatusInternalServerError)
 	}
 }
 
 // /api/info.
 func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
-	username := r.Context().Value(middleware.UsernameKey).(string)
+	username, ok := r.Context().Value(middleware.UsernameKey).(string)
+	if !ok {
+		http.Error(w, "failed to retrieve username from context", http.StatusInternalServerError)
+		return
+	}
 
 	info, err := h.userService.GetUserInfo(username)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "failed to get user info", http.StatusBadRequest)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewEncoder(w).Encode(info); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		http.Error(w, "failed to encode response", http.StatusInternalServerError)
 	}
 }
 
 // /api/sendCoin.
 func (h *Handler) SendCoin(w http.ResponseWriter, r *http.Request) {
-	var req model.SendCoinRequest
+	var req dto.SendCoinRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "invalid request payload", http.StatusBadRequest)
 		return
 	}
 
-	fromUsername := r.Context().Value(middleware.UsernameKey).(string)
+	fromUsername, ok := r.Context().Value(middleware.UsernameKey).(string)
+	if !ok {
+		http.Error(w, "failed to retrieve username from context", http.StatusInternalServerError)
+		return
+	}
+
 	if err := h.coinService.TransferCoins(fromUsername, req.ToUser, req.Amount); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "failed to transfer coins", http.StatusBadRequest)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-
-	if _, err := w.Write([]byte("success")); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
 }
 
 // /api/buy/{item}.
 func (h *Handler) Buy(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	item := vars["item"]
+	item, ok := vars["item"]
+	if !ok {
+		http.Error(w, "item not specified", http.StatusBadRequest)
+		return
+	}
 
-	username := r.Context().Value(middleware.UsernameKey).(string)
+	username, ok := r.Context().Value(middleware.UsernameKey).(string)
+	if !ok {
+		http.Error(w, "failed to retrieve username from context", http.StatusInternalServerError)
+		return
+	}
+
 	if err := h.purchaseService.PurchaseItem(username, item); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		if err.Error() == "insufficient funds" {
+			http.Error(w, "insufficient funds", http.StatusPaymentRequired)
+			return
+		}
+
+		http.Error(w, "purchase failed", http.StatusBadRequest)
+
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-
-	if _, err := w.Write([]byte("success")); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
 }

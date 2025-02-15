@@ -6,19 +6,6 @@ import (
 	"github.com/KazikovAP/merch_store/internal/repository"
 )
 
-var MerchItems = map[string]int{
-	"t-shirt":    80,
-	"cup":        20,
-	"book":       50,
-	"pen":        10,
-	"powerbank":  200,
-	"hoody":      300,
-	"umbrella":   200,
-	"socks":      10,
-	"wallet":     50,
-	"pink-hoody": 500,
-}
-
 type PurchaseService interface {
 	PurchaseItem(username, item string) error
 }
@@ -26,18 +13,24 @@ type PurchaseService interface {
 type purchaseService struct {
 	userRepo      repository.UserRepository
 	inventoryRepo repository.InventoryRepository
+	merchRepo     repository.MerchRepository
 }
 
-func NewPurchaseService(userRepo repository.UserRepository, inventoryRepo repository.InventoryRepository) PurchaseService {
+func NewPurchaseService(
+	userRepo repository.UserRepository,
+	inventoryRepo repository.InventoryRepository,
+	merchRepo repository.MerchRepository,
+) PurchaseService {
 	return &purchaseService{
 		userRepo:      userRepo,
 		inventoryRepo: inventoryRepo,
+		merchRepo:     merchRepo,
 	}
 }
 
 func (s *purchaseService) PurchaseItem(username, item string) error {
-	price, ok := MerchItems[item]
-	if !ok {
+	price, err := s.merchRepo.GetPriceByName(item)
+	if err != nil {
 		return errors.New("item not found")
 	}
 

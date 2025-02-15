@@ -8,21 +8,36 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+// should not use built-in type string as key for value;
+// define your own type to avoid collisions (SA1029) go-staticcheck.
 type contextKey string
 
-const UsernameKey contextKey = "username"
+const (
+	UsernameKey   contextKey = "username"
+	usernameClaim string     = "username"
+)
 
 func JwtMiddleware(secret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" {
-				http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
+			if !strings.HasPrefix(authHeader, "Bearer ") {
+				http.Error(w, "Invalid Authorization header format", http.StatusUnauthorized)
 				return
 			}
 
 			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-			token, err := jwt.Parse(tokenString, func(_ *jwt.Token) (interface{}, error) {
+			if tokenString == "" {
+				http.Error(w, "Empty token", http.StatusUnauthorized)
+				return
+			}
+
+			token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+				if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+					http.Error(w, "Invalid token signing method", http.StatusUnauthorized)
+					return nil, jwt.ErrSignatureInvalid
+				}
+
 				return []byte(secret), nil
 			})
 
@@ -32,14 +47,14 @@ func JwtMiddleware(secret string) func(http.Handler) http.Handler {
 			}
 
 			claims, ok := token.Claims.(jwt.MapClaims)
-			if !ok || !token.Valid {
+			if !ok {
 				http.Error(w, "Invalid token claims", http.StatusUnauthorized)
 				return
 			}
 
-			username, ok := claims["username"].(string)
+			username, ok := claims[usernameClaim].(string)
 			if !ok {
-				http.Error(w, "Invalid token claims", http.StatusUnauthorized)
+				http.Error(w, "Invalid token claims: missing username", http.StatusUnauthorized)
 				return
 			}
 

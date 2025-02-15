@@ -3,11 +3,11 @@ package repository
 import (
 	"database/sql"
 
-	"github.com/KazikovAP/merch_store/internal/model"
+	"github.com/KazikovAP/merch_store/internal/model/domain"
 )
 
 type InventoryRepository interface {
-	GetByUserID(userID int) ([]*model.InventoryItem, error)
+	GetByUserID(userID int) ([]*domain.InventoryItem, error)
 	AddItem(userID int, itemType string, quantity int) error
 }
 
@@ -19,17 +19,17 @@ func NewInventoryRepository(db *sql.DB) InventoryRepository {
 	return &inventoryRepository{db: db}
 }
 
-func (r *inventoryRepository) GetByUserID(userID int) ([]*model.InventoryItem, error) {
+func (r *inventoryRepository) GetByUserID(userID int) ([]*domain.InventoryItem, error) {
 	rows, err := r.db.Query("SELECT id, user_id, item_type, quantity FROM inventory WHERE user_id=$1", userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var items []*model.InventoryItem
+	var items []*domain.InventoryItem
 
 	for rows.Next() {
-		item := &model.InventoryItem{}
+		item := &domain.InventoryItem{}
 		if err := rows.Scan(&item.ID, &item.UserID, &item.ItemType, &item.Quantity); err != nil {
 			return nil, err
 		}
