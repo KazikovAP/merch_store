@@ -44,6 +44,7 @@ func main() {
 			log.Printf("Ошибка при закрытии БД: %v", cerr)
 		}
 
+		db.Close()
 		log.Fatalf("failed to initialize token manager: %v", err)
 	}
 
