@@ -320,79 +320,74 @@ Latency Histogram:
 ### Нагрузочный тест на /api/sendCoin
 ```
 plow http://localhost:8080/api/sendCoin \
->   -c 8 \
->   -m POST \
->   -H "Content-Type: application/json" \
->   -H "Authorization: Bearer <ваш_токен>" \
+> -c 1 -n 1000 \
+> -m POST \
+> -H "Content-Type: application/json" \
+> -H "Authorization: Bearer <ваш_токен>" \
 > --body @send_coin_payload.json
-Benchmarking http://localhost:8080/api/sendCoin using 8 connection(s).
+Benchmarking http://localhost:8080/api/sendCoin with 1000 request(s) using 1 connection(s).
 @ Real-time charts is listening on http://[::]:18888
 
 Summary:
-  Elapsed      29.4s
-  Count        11961
-    2xx           65
-    4xx        11896
-  RPS        406.089
-  Reads    0.065MB/s
-  Writes   0.132MB/s
+  Elapsed       3.9s
+  Count         1000
+    2xx         1000
+  RPS        254.244
+  Reads    0.018MB/s
+  Writes   0.082MB/s
 
-Statistics   Min      Mean     StdDev      Max
-  Latency    1ms    19.675ms  15.277ms  112.937ms
-  RPS       218.39   407.19    90.26     549.68
+Statistics    Min     Mean    StdDev    Max
+  Latency   2.998ms  3.924ms  683µs   19.149ms
+  RPS       245.83   254.62    7.67    260.02
 
 Latency Percentile:
-  P50         P75       P90       P95       P99      P99.9     P99.99
-  15.004ms  28.998ms  40.302ms  49.008ms  67.413ms  93.151ms  112.937ms
+  P50        P75      P90     P95      P99     P99.9     P99.99
+  3.697ms  4.194ms  4.565ms  4.78ms  5.377ms  19.149ms  19.149ms
 
 Latency Histogram:
-  9.775ms    6752  56.45%
-  25.611ms   3231  27.01%
-  38.329ms   1364  11.40%
-  50.597ms    423   3.54%
-  62.483ms    136   1.14%
-  77.93ms      48   0.40%
-  86.331ms      4   0.03%
-  106.457ms     3   0.03%
+  3.63ms   475  47.50%
+  3.925ms  279  27.90%
+  4.265ms  157  15.70%
+  4.618ms   36   3.60%
+  4.855ms   28   2.80%
+  5.115ms    7   0.70%
+  5.328ms   14   1.40%
+  5.643ms    4   0.40%
 ```
-! Закончились деньги, поэтому пошли 4хх ошибки, было 650 монет.
 
 ![coin](tests/load/coin.png)
 
 ### Нагрузочный тест на /api/buy/socks
 ```
-plow http://localhost:8080/api/buy/socks -c 8 -H "Authorization: Bearer <ваш_токен>"
-Benchmarking http://localhost:8080/api/buy/socks using 8 connection(s).
+plow http://localhost:8080/api/buy/socks -c 1 -n 100 -H "Authorization: Bearer <ваш_токен>"
+Benchmarking http://localhost:8080/api/buy/socks with 100 request(s) using 1 connection(s).
 @ Real-time charts is listening on http://[::]:18888
 
 Summary:
-  Elapsed      30.3s
-  Count        13211
+  Elapsed      400ms
+  Count          100
     2xx          100
-    4xx        13111
-  RPS        435.732
-  Reads    0.069MB/s
-  Writes   0.100MB/s
+  RPS        243.927
+  Reads    0.017MB/s
+  Writes   0.056MB/s
 
-Statistics   Min    Mean     StdDev      Max
-  Latency   993µs  18.34ms  14.748ms  116.043ms
-  RPS       228.1  433.76    86.75     557.57
+Statistics    Min     Mean    StdDev     Max
+  Latency   3.111ms  4.094ms  1.774ms  20.751ms
 
 Latency Percentile:
-  P50         P75       P90       P95       P99      P99.9     P99.99
-  13.004ms  27.776ms  38.317ms  46.605ms  63.193ms  91.108ms  116.043ms
+  P50       P75      P90      P95      P99     P99.9     P99.99
+  3.73ms  4.181ms  4.722ms  5.299ms  6.071ms  20.751ms  20.751ms
 
 Latency Histogram:
-  8.733ms    7567  57.28%
-  26.856ms   4385  33.19%
-  40.127ms    831   6.29%
-  53.767ms    313   2.37%
-  68.194ms     86   0.65%
-  79.401ms     23   0.17%
-  88.848ms      4   0.03%
-  113.889ms     2   0.02%
+  3.933ms  72  72.00%
+  4.164ms   9   9.00%
+  4.191ms   4   4.00%
+  4.232ms   5   5.00%
+  4.699ms   5   5.00%
+  5.291ms   3   3.00%
+  5.35ms    1   1.00%
+  6.071ms   1   1.00%
 ```
-! Снова деньги закончились, 100 носков было куплено.
 
 ![buy](tests/load/buy.png)
 
