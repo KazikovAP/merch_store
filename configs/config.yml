@@ -1,0 +1,23 @@
+server:
+  port: 8080
+  read_timeout: 10s
+  write_timeout: 10s
+
+db:
+  host: localhost
+  port: 5432
+  username: postgres
+  password: postgres
+  dbname: merch_store
+  sslmode: disable
+
+postgres:
+  max_open_conns: 25
+  max_idle_conns: 25
+  conn_max_lifetime: 5m
+  retry_count: 5
+  retry_pause: 2s
+
+auth:
+  signing_key: "super-secret-key"
+  token_ttl: 24h

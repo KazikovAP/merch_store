@@ -40,6 +40,35 @@ docker-compose down
 ```
 
 ## Примеры запросов к API
+чтобы получить токен:
+```
+curl -X POST http://localhost:8080/api/auth \
+  -H "Content-Type: application/json" \
+  -d '{"username": "ваше_имя", "password": "ваш_пароль"}'
+```
+
+После получения токена можно сделать запрос к /api/info так:
+```
+curl http://localhost:8080/api/info \
+  -H "Authorization: Bearer <ваш_токен>"
+```
+
+
+для отправки монет:
+```
+curl -X POST http://localhost:8080/api/sendCoin \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <ваш_токен>" \
+  -d '{"toUser": "имя_получателя", "amount": 10}'
+```
+
+А для покупки предмета, например, hat:
+```
+curl http://localhost:8080/api/buy/hat \
+  -H "Authorization: Bearer <ваш_токен>"
+```
+
+
 
 ---
 ## Разработал:

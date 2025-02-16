@@ -1,31 +1,48 @@
+-- 001_init_schema.sql
 CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    coins INT NOT NULL
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    balance BIGINT NOT NULL DEFAULT 1000 CHECK (balance >= 0),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
-CREATE TABLE IF NOT EXISTS inventory (
-    id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES users(id),
-    item_type TEXT NOT NULL,
-    quantity INT NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_inventory_user_item ON inventory (user_id, item_type);
-
-CREATE TABLE IF NOT EXISTS transactions (
-    id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES users(id),
-    type TEXT NOT NULL,
-    other_user TEXT NOT NULL,
-    amount INT NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions (user_id);
 
 CREATE TABLE IF NOT EXISTS merchandise (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) UNIQUE NOT NULL,
-    price INT NOT NULL
+    name VARCHAR(50) PRIMARY KEY,
+    price BIGINT NOT NULL CHECK (price > 0)
 );
+
+CREATE TABLE IF NOT EXISTS transactions (
+    id BIGSERIAL PRIMARY KEY,
+    sender_id BIGINT NOT NULL REFERENCES users(id),
+    receiver_id BIGINT NOT NULL REFERENCES users(id),
+    amount BIGINT NOT NULL CHECK (amount > 0),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT different_users CHECK (sender_id != receiver_id)
+);
+
+CREATE TABLE IF NOT EXISTS purchases (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    merch_name VARCHAR(50) NOT NULL REFERENCES merchandise(name),
+    quantity INT NOT NULL CHECK (quantity > 0),
+    total_price BIGINT NOT NULL CHECK (total_price > 0),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Индексы
+CREATE INDEX idx_transactions_sender ON transactions(sender_id);
+CREATE INDEX idx_transactions_receiver ON transactions(receiver_id);
+CREATE INDEX idx_purchases_user ON purchases(user_id);
+
+-- Начальные данные мерча
+INSERT INTO merchandise (name, price) VALUES
+    ('t-shirt', 80),
+    ('cup', 20),
+    ('book', 50),
+    ('pen', 10),
+    ('powerbank', 200),
+    ('hoody', 300),
+    ('umbrella', 200),
+    ('socks', 10),
+    ('wallet', 50),
+    ('pink-hoody', 500);
